@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Next.js
+apps/web/.next/
+apps/web/out/
+
+# PocketBase runtime data and backups
+apps/pocketbase/pb_data/
+apps/pocketbase/pb_data_backup/
+apps/pocketbase/pb_data_before_restore/
+
+# Local environment configuration
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Logs and local tooling
+*.log
+npm-debug.log*
+.cache/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Local backup files
+.gitignore.save
