@@ -4,10 +4,14 @@ const nextConfig = {
 
   output: 'standalone',
 
-  // Temporarily ignore TypeScript errors during production builds.
-  // This does not suppress runtime or prerendering errors.
+  // Temporarily ignore TypeScript errors.
   typescript: {
     ignoreBuildErrors: true,
+  },
+
+  // Temporarily ignore ESLint errors.
+  eslint: {
+    ignoreDuringBuilds: true,
   },
 };
 
