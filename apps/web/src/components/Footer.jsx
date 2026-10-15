@@ -6,19 +6,21 @@ import { INDUSTRY_CARDS, RESOURCES, ABOUT_LINKS } from '@/data/site';
 const SOCIALS = [{
   label: 'LinkedIn',
   icon: Linkedin,
-  href: 'https://www.linkedin.com'
-}, {
-  label: 'X',
-  icon: Twitter,
-  href: 'https://twitter.com'
-}, {
+  href: 'https://www.linkedin.com/company/networsys-technologiesnoida/'
+}, 
+// {
+//   label: 'X',
+//   icon: Twitter,
+//   href: 'https://twitter.com'
+// }, 
+{
   label: 'Facebook',
   icon: Facebook,
-  href: 'https://www.facebook.com'
+  href: 'https://www.facebook.com/networsystechnologies/'
 }, {
   label: 'Instagram',
   icon: Instagram,
-  href: 'https://www.instagram.com'
+  href: 'https://www.instagram.com/networsyst/'
 }];
 const CERTS = ['ISO 27001', 'AWS Partner', 'CEH'];
 const ADDRESS = 'C-302, Tower C, Noida One, Sector-62, Noida, Gautam Buddha Nagar, Uttar Pradesh 201301, India';
