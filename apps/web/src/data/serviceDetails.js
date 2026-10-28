@@ -578,6 +578,11 @@ export const SERVICE_DETAILS = [
             description: 'Deploy a production-ready AI platform with Kubernetes, GPU operators, model serving, multi-tenant scheduling, object storage and observability.',
         },
     },
+
+// Nueralcore services end here. Aegis360 services start below.
+
+
+
     {
         slug: 'striketest',
         solutionSlug: 'aegis360',

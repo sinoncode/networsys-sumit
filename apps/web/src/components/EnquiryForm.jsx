@@ -1,6 +1,7 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 import { AlertCircle, CheckCircle2, Loader2, Send } from 'lucide-react';
+import { sendEnquiryEmail } from "@/lib/send-enquiry-email";
 import pb from '@/lib/pocketbaseClient';
 
 const SOLUTION_OPTIONS = [
@@ -15,9 +16,15 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const INITIAL = { name: '', email: '', company: '', phone: '', solution: 'general', message: '', consent: false };
 
 const EnquiryForm = ({ solution = 'general', heading = 'Request a consultation', subheading, buttonLabel = 'Submit enquiry' }) => {
+    const formId = useId();
     const [form, setForm] = useState({ ...INITIAL, solution });
     const [errors, setErrors] = useState({});
     const [status, setStatus] = useState('idle'); // idle | submitting | success | error
+    const [emailWarning, setEmailWarning] = useState(false);
+
+    useEffect(() => {
+        setForm((current) => ({ ...current, solution }));
+    }, [solution]);
 
     const set = (key, value) => {
         setForm((f) => ({ ...f, [key]: value }));
@@ -34,25 +41,43 @@ const EnquiryForm = ({ solution = 'general', heading = 'Request a consultation',
         return Object.keys(next).length === 0;
     };
 
-    const onSubmit = async (e) => {
-        e.preventDefault();
+    const onSubmit = async (event) => {
+        event.preventDefault();
         if (status === 'submitting') return;
         if (!validate()) return;
 
         setStatus('submitting');
+        setEmailWarning(false);
+
         try {
-            await pb.collection('enquiries').create({
+            await sendEnquiryEmail({
                 name: form.name.trim(),
                 email: form.email.trim(),
                 company: form.company.trim(),
                 phone: form.phone.trim(),
                 solution: form.solution,
                 message: form.message.trim(),
-                consent: form.consent,
+                formType: 'Website Enquiry',
             });
+
+            try {
+                await pb.collection('enquiries').create({
+                    name: form.name.trim(),
+                    email: form.email.trim(),
+                    company: form.company.trim(),
+                    phone: form.phone.trim(),
+                    solution: form.solution,
+                    message: form.message.trim(),
+                    consent: form.consent,
+                });
+            } catch (storageError) {
+                console.error('Email sent, but enquiry storage failed:', storageError);
+                setEmailWarning(true);
+            }
+
             setStatus('success');
-        } catch (err) {
-            console.error('Enquiry submit failed', err);
+        } catch (error) {
+            console.error('Email submission failed:', error);
             setStatus('error');
         }
     };
@@ -68,10 +93,17 @@ const EnquiryForm = ({ solution = 'general', heading = 'Request a consultation',
                     Thank you, {form.name.split(' ')[0]}. A Networsys consultant will reach out within one business day
                     to schedule your free 30-minute call.
                 </p>
+                {emailWarning && (
+                    <p className="mt-4 max-w-md rounded-xl border border-yellow-400/20 bg-yellow-400/10 px-4 py-3 text-xs text-yellow-100">
+                        Your email enquiry was sent, but a backup copy could not be saved.
+                    </p>
+                )}
                 <button
                     type="button"
                     onClick={() => {
                         setForm({ ...INITIAL, solution });
+                        setErrors({});
+                        setEmailWarning(false);
                         setStatus('idle');
                     }}
                     className="btn-gradient mt-8 inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold"
@@ -89,11 +121,11 @@ const EnquiryForm = ({ solution = 'general', heading = 'Request a consultation',
 
             <div className="mt-6 grid gap-5 sm:grid-cols-2">
                 <div>
-                    <label htmlFor="enq-name" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-mist/70">
+                    <label htmlFor={`${formId}-name`} className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-mist/70">
                         Full name *
                     </label>
                     <input
-                        id="enq-name"
+                        id={`${formId}-name`}
                         type="text"
                         autoComplete="name"
                         className="field-dark"
@@ -105,11 +137,11 @@ const EnquiryForm = ({ solution = 'general', heading = 'Request a consultation',
                 </div>
 
                 <div>
-                    <label htmlFor="enq-email" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-mist/70">
+                    <label htmlFor={`${formId}-email`} className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-mist/70">
                         Work email *
                     </label>
                     <input
-                        id="enq-email"
+                        id={`${formId}-email`}
                         type="email"
                         autoComplete="email"
                         className="field-dark"
@@ -121,11 +153,11 @@ const EnquiryForm = ({ solution = 'general', heading = 'Request a consultation',
                 </div>
 
                 <div>
-                    <label htmlFor="enq-company" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-mist/70">
+                    <label htmlFor={`${formId}-company`} className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-mist/70">
                         Company
                     </label>
                     <input
-                        id="enq-company"
+                        id={`${formId}-company`}
                         type="text"
                         autoComplete="organization"
                         className="field-dark"
@@ -136,11 +168,11 @@ const EnquiryForm = ({ solution = 'general', heading = 'Request a consultation',
                 </div>
 
                 <div>
-                    <label htmlFor="enq-phone" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-mist/70">
+                    <label htmlFor={`${formId}-phone`} className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-mist/70">
                         Phone
                     </label>
                     <input
-                        id="enq-phone"
+                        id={`${formId}-phone`}
                         type="tel"
                         autoComplete="tel"
                         className="field-dark"
@@ -151,11 +183,11 @@ const EnquiryForm = ({ solution = 'general', heading = 'Request a consultation',
                 </div>
 
                 <div className="sm:col-span-2">
-                    <label htmlFor="enq-solution" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-mist/70">
+                    <label htmlFor={`${formId}-solution`} className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-mist/70">
                         I’m interested in
                     </label>
                     <select
-                        id="enq-solution"
+                        id={`${formId}-solution`}
                         className="field-dark appearance-none bg-ink"
                         value={form.solution}
                         onChange={(e) => set('solution', e.target.value)}
@@ -169,11 +201,11 @@ const EnquiryForm = ({ solution = 'general', heading = 'Request a consultation',
                 </div>
 
                 <div className="sm:col-span-2">
-                    <label htmlFor="enq-message" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-mist/70">
+                    <label htmlFor={`${formId}-message`} className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-mist/70">
                         How can we help? *
                     </label>
                     <textarea
-                        id="enq-message"
+                        id={`${formId}-message`}
                         rows={4}
                         className="field-dark resize-none"
                         placeholder="Tell us about your workload, security posture or product idea…"
@@ -209,7 +241,7 @@ const EnquiryForm = ({ solution = 'general', heading = 'Request a consultation',
             {status === 'error' && (
                 <p className="mt-5 flex items-center gap-2 rounded-xl border border-ember/30 bg-ember/10 px-4 py-3 text-xs text-ember">
                     <AlertCircle size={15} className="shrink-0" />
-                    Something went wrong while sending your enquiry. Please try again in a moment.
+                    Email delivery failed. Please check your connection and try again.
                 </p>
             )}
 
